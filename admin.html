@@ -127,13 +127,15 @@
       ladeBrainrots();
     });
 
-    // Offers laden
+    // Offers laden – nur pending anzeigen
     async function ladeOffers(){
       offersList.innerHTML="Lade...";
       const snapshot = await getDocs(collection(db,"offers"));
       offersList.innerHTML="";
       snapshot.forEach(docSnap=>{
         const data = docSnap.data();
+        if(data.status !== "pending") return; // nur pending anzeigen
+
         const div=document.createElement("div");
         div.className="offer";
         div.innerHTML=`
@@ -146,14 +148,16 @@
       });
     }
 
+    // Angebot annehmen
     window.acceptOffer = async function(id){
       await updateDoc(doc(db,"offers",id),{status:"accepted"});
-      ladeOffers();
+      ladeOffers(); // verschwindet nach Annahme
     }
 
+    // Angebot ablehnen
     window.rejectOffer = async function(id){
       await updateDoc(doc(db,"offers",id),{status:"rejected"});
-      ladeOffers();
+      ladeOffers(); // verschwindet nach Ablehnung
     }
   </script>
 </body>
