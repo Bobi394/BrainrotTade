@@ -1,67 +1,18 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Brainrot Trade 🧠💸</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #1e1e2f;
-      color: #f5f5f5;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #29294d;
-      padding: 15px;
-      color: #fff;
-    }
-    button {
-      background-color: #4e5efc;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      color: white;
-      font-weight: bold;
-      margin: 5px;
-    }
-    button:hover { background-color: #6f7bff; }
-    #brainrots {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 16px;
-      margin-top: 20px;
-    }
-    .brainrot-card {
-      background-color: #2c2c44;
-      border-radius: 10px;
-      padding: 15px;
-      width: 200px;
-    }
-    .brainrot-card img {
-      width: 100%;
-      border-radius: 8px;
-    }
-    .offer-input {
-      margin-top: 8px;
-      width: 90%;
-      padding: 5px;
-      border-radius: 4px;
-      border: 1px solid #666;
-    }
-    #auth-box {
-      margin-top: 10px;
-    }
-    input {
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #999;
-      margin: 4px;
-    }
+    body { font-family: Arial; background-color:#1e1e2f; color:#f5f5f5; text-align:center; }
+    input, button { padding:8px; margin:5px; border-radius:5px; }
+    button { cursor:pointer; background-color:#4e5efc; color:white; border:none; }
+    button:hover { background-color:#6f7bff; }
+    #brainrots { display:flex; flex-wrap:wrap; justify-content:center; gap:16px; margin-top:20px; }
+    .brainrot-card { background-color:#2c2c44; border-radius:10px; padding:15px; width:200px; }
+    .brainrot-card img { width:100%; border-radius:8px; }
+    .offer-input { width:90%; padding:5px; border-radius:4px; border:1px solid #666; margin-top:8px; }
   </style>
 </head>
 <body>
@@ -69,8 +20,8 @@
     <h1>🧠 Brainrot Trade Portal</h1>
     <div id="user-info"></div>
     <div id="auth-box">
-      <input id="email" type="email" placeholder="E-Mail" />
-      <input id="password" type="password" placeholder="Passwort" />
+      <input id="email" type="email" placeholder="E-Mail">
+      <input id="password" type="password" placeholder="Passwort">
       <button id="register-btn">Registrieren</button>
       <button id="login-btn">Login</button>
       <button id="logout-btn" style="display:none;">Logout</button>
@@ -82,17 +33,11 @@
     <div id="brainrots">Bitte einloggen...</div>
   </main>
 
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { 
-      getFirestore, collection, getDocs, addDoc, serverTimestamp 
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-    import { 
-      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-    // Deine Firebase-Daten 🔥
     const firebaseConfig = {
       apiKey: "AIzaSyCSGYr4opBpK_G-U7Vs7o5boniVVojClaU",
       authDomain: "brainrottrade-bada5.firebaseapp.com",
@@ -103,7 +48,6 @@
       measurementId: "G-TJR1CS3SSP"
     };
 
-    // Initialisierung
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -117,94 +61,64 @@
     const brainrotContainer = document.getElementById("brainrots");
 
     // Registrierung
-    registerBtn.addEventListener("click", async () => {
-      try {
-        const userCred = await createUserWithEmailAndPassword(
-          auth,
-          emailInput.value,
-          passwordInput.value
-        );
-        alert("Registrierung erfolgreich!");
-      } catch (err) {
-        alert("Fehler: " + err.message);
-      }
+    registerBtn.addEventListener("click", async ()=>{
+      try { await createUserWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Registrierung erfolgreich!"); }
+      catch(err){ alert("Fehler: "+err.message); }
     });
 
     // Login
-    loginBtn.addEventListener("click", async () => {
-      try {
-        await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-        alert("Eingeloggt!");
-      } catch (err) {
-        alert("Fehler: " + err.message);
-      }
+    loginBtn.addEventListener("click", async ()=>{
+      try{ await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Eingeloggt!"); }
+      catch(err){ alert("Fehler: "+err.message); }
     });
 
     // Logout
-    logoutBtn.addEventListener("click", async () => {
-      await signOut(auth);
-    });
+    logoutBtn.addEventListener("click", async ()=>{ await signOut(auth); });
 
-    // Benutzerstatus beobachten
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userInfo.textContent = `👤 Eingeloggt als: ${user.email}`;
-        logoutBtn.style.display = "inline-block";
-        loginBtn.style.display = "none";
-        registerBtn.style.display = "none";
+    onAuthStateChanged(auth,(user)=>{
+      if(user){
+        userInfo.textContent=`👤 Eingeloggt als: ${user.email}`;
+        loginBtn.style.display="none"; registerBtn.style.display="none"; logoutBtn.style.display="inline-block";
+        emailInput.style.display="none"; passwordInput.style.display="none";
         ladeBrainrots();
       } else {
-        userInfo.textContent = "Nicht eingeloggt";
-        logoutBtn.style.display = "none";
-        loginBtn.style.display = "inline-block";
-        registerBtn.style.display = "inline-block";
-        brainrotContainer.innerHTML = "Bitte einloggen, um Brainrots zu sehen 👀";
+        userInfo.textContent="Nicht eingeloggt";
+        loginBtn.style.display="inline-block"; registerBtn.style.display="inline-block"; logoutBtn.style.display="none";
+        emailInput.style.display="inline-block"; passwordInput.style.display="inline-block";
+        brainrotContainer.innerHTML="Bitte einloggen, um Brainrots zu sehen 👀";
       }
     });
 
-    // Brainrots laden
-    async function ladeBrainrots() {
-      brainrotContainer.innerHTML = "Lade...";
-      const querySnapshot = await getDocs(collection(db, "brainrots"));
-      if (querySnapshot.empty) {
-        brainrotContainer.innerHTML = "Noch keine Brainrots im Shop 😢";
-        return;
-      }
-
-      brainrotContainer.innerHTML = "";
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "brainrot-card";
-        div.innerHTML = `
-          <img src="${data.imageUrl || 'https://placehold.co/200x200'}" alt="Brainrot">
+    async function ladeBrainrots(){
+      brainrotContainer.innerHTML="Lade...";
+      const snapshot = await getDocs(collection(db,"brainrots"));
+      if(snapshot.empty){ brainrotContainer.innerHTML="Noch keine Brainrots 😢"; return; }
+      brainrotContainer.innerHTML="";
+      snapshot.forEach(docSnap=>{
+        const data=docSnap.data();
+        const div=document.createElement("div");
+        div.className="brainrot-card";
+        div.innerHTML=`
+          <img src="${data.imageUrl||'https://placehold.co/200x200'}">
           <h3>${data.name}</h3>
-          <p>Rarity: ${data.rarity || 'Unbekannt'}</p>
-          <input type="text" class="offer-input" placeholder="Dein Angebot..." id="offer-${doc.id}">
-          <button onclick="makeOffer('${doc.id}')">💬 Make Offer</button>
+          <p>Rarity: ${data.rarity||'Unbekannt'}</p>
+          <input type="text" class="offer-input" placeholder="Dein Angebot..." id="offer-${docSnap.id}">
+          <button onclick="makeOffer('${docSnap.id}')">💬 Make Offer</button>
         `;
         brainrotContainer.appendChild(div);
       });
     }
 
-    // Offer-Funktion
-    window.makeOffer = async function(brainrotId) {
+    window.makeOffer = async function(brainrotId){
       const user = auth.currentUser;
-      if (!user) return alert("Bitte einloggen!");
+      if(!user) return alert("Bitte einloggen!");
       const input = document.getElementById(`offer-${brainrotId}`);
       const angebot = input.value.trim();
-      if (!angebot) return alert("Bitte gib dein Angebot ein!");
-
-      await addDoc(collection(db, "offers"), {
-        brainrotId,
-        fromUid: user.uid,
-        fromEmail: user.email,
-        offerText: angebot,
-        status: "pending",
-        createdAt: serverTimestamp()
+      if(!angebot) return alert("Bitte gib dein Angebot ein!");
+      await addDoc(collection(db,"offers"),{
+        brainrotId, fromUid:user.uid, fromEmail:user.email, offerText:angebot, status:"pending", createdAt:serverTimestamp()
       });
-
-      input.value = "";
+      input.value="";
       alert("✅ Angebot gesendet!");
     };
   </script>
