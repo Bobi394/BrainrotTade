@@ -117,8 +117,12 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp, getDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { 
+  getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp, deleteDoc, doc 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { 
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCSGYr4opBpK_G-U7Vs7o5boniVVojClaU",
@@ -142,7 +146,7 @@ const logoutBtn = document.getElementById("logout-btn");
 const userInfo = document.getElementById("user-info");
 const offersDiv = document.getElementById("offers");
 
-let brainrotCache = {}; // 💾 zum Zwischenspeichern der Namen
+let brainrotCache = {};
 
 // 🔐 Login / Logout
 loginBtn.addEventListener("click", async () => {
@@ -182,7 +186,7 @@ async function ladeBrainrots() {
   brainrotList.innerHTML = "";
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
-    brainrotCache[docSnap.id] = data.name; // 💾 Speichern
+    brainrotCache[docSnap.id] = data.name;
     const div = document.createElement("div");
     div.className = "brainrot" + (data.stock === 0 ? " outofstock" : "");
     div.innerHTML = `
@@ -214,11 +218,11 @@ async function sendOffer(id) {
   const offerText = document.getElementById("popup-offertext").value.trim();
   if (!robloxUsername || !offerText) { alert("Bitte alles ausfüllen!"); return; }
 
-  const brainrotName = brainrotCache[id] || "Unbekannt"; // 🧠 Name aus Cache
+  const brainrotName = brainrotCache[id] || "Unbekannt";
 
   await addDoc(collection(db, "offers"), {
     brainrotId: id,
-    brainrotName: brainrotName, // 🧠 Hier speichern wir den Namen
+    brainrotName: brainrotName,
     robloxUsername,
     offerText,
     fromEmail: user.email,
@@ -246,17 +250,29 @@ async function ladeEigeneAngebote(){
     let statusIcon = "🕒";
     if(o.status==="accepted") statusIcon = "✅";
     else if(o.status==="rejected") statusIcon = "❌";
+    else if(o.status==="done") statusIcon = "🎉";
+
     html += `
       <div style="border-bottom:1px solid #444; padding:5px;">
         ${statusIcon} <strong>${o.brainrotName || "Unbekannter Brainrot"}</strong><br>
         <em>${o.offerText}</em><br>
         Roblox: ${o.robloxUsername}<br>
         Status: ${o.status || "pending"}
+        ${o.status === "done" ? `<br><button onclick="deleteOffer('${docSnap.id}')">🗑️ Löschen</button>` : ""}
       </div>
     `;
   });
   offersDiv.innerHTML = html;
 }
+
+// 🗑️ Angebot löschen, wenn fertig
+window.deleteOffer = async function(id){
+  if(confirm("Willst du dieses Angebot wirklich löschen?")){
+    await deleteDoc(doc(db,"offers",id));
+    alert("🗑️ Angebot gelöscht!");
+    ladeEigeneAngebote();
+  }
+};
 </script>
 
 </body>
