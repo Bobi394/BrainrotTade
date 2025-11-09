@@ -9,7 +9,7 @@
     input, button { padding:8px; margin:5px; border-radius:5px; }
     button { cursor:pointer; background:#4e5efc; color:white; border:none; }
     button:hover { background:#6f7bff; }
-    .brainrot, .offer { background:#2c2c44; margin:10px auto; padding:10px; width:300px; border-radius:8px; }
+    .brainrot, .offer { background:#2c2c44; margin:10px auto; padding:10px; width:350px; border-radius:8px; text-align:left; }
     h2 { margin-top:30px; }
   </style>
 </head>
@@ -139,8 +139,10 @@
         const div=document.createElement("div");
         div.className="offer";
         div.innerHTML=`
-          <strong>${data.fromEmail}</strong> bietet "${data.offerText}" für Brainrot ID ${data.brainrotId}<br>
-          Status: ${data.status}<br>
+          <strong>E-Mail:</strong> ${data.fromEmail}<br>
+          <strong>Roblox Username:</strong> ${data.robloxUsername}<br>
+          <strong>Angebot:</strong> ${data.offerText}<br>
+          <strong>Brainrot ID:</strong> ${data.brainrotId}<br>
           <button onclick="acceptOffer('${docSnap.id}')">✔️ Annehmen</button>
           <button onclick="rejectOffer('${docSnap.id}')">❌ Ablehnen</button>
         `;
