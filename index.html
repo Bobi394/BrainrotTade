@@ -1,1 +1,175 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brainrot Trade 🧠💸</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1e1e2f;
+      color: #f5f5f5;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #29294d;
+      padding: 15px;
+      color: #fff;
+    }
+    button {
+      background-color: #4e5efc;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      margin: 5px;
+    }
+    button:hover { background-color: #6f7bff; }
+    #brainrots {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .brainrot-card {
+      background-color: #2c2c44;
+      border-radius: 10px;
+      padding: 15px;
+      width: 200px;
+    }
+    .brainrot-card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    .offer-input {
+      margin-top: 8px;
+      width: 90%;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🧠 Brainrot Trade Portal</h1>
+    <div id="user-info"></div>
+    <button id="login-btn">Login</button>
+    <button id="logout-btn" style="display:none;">Logout</button>
+  </header>
 
+  <main>
+    <h2>Shop 🛒</h2>
+    <div id="brainrots">Lade Brainrots...</div>
+  </main>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { 
+      getFirestore, collection, getDocs, addDoc, serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { 
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    // Deine Firebase-Daten 🔥
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSGYr4opBpK_G-U7Vs7o5boniVVojClaU",
+      authDomain: "brainrottrade-bada5.firebaseapp.com",
+      projectId: "brainrottrade-bada5",
+      storageBucket: "brainrottrade-bada5.firebasestorage.app",
+      messagingSenderId: "141473188329",
+      appId: "1:141473188329:web:3548a50d851d8807bbe378",
+      measurementId: "G-TJR1CS3SSP"
+    };
+
+    // Initialisierung
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const userInfo = document.getElementById("user-info");
+    const brainrotContainer = document.getElementById("brainrots");
+
+    // Login
+    loginBtn.addEventListener("click", async () => {
+      await signInWithPopup(auth, provider);
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    // Benutzerstatus beobachten
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userInfo.textContent = `👤 Eingeloggt als: ${user.displayName}`;
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        ladeBrainrots();
+      } else {
+        userInfo.textContent = "Nicht eingeloggt";
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        brainrotContainer.innerHTML = "Bitte einloggen, um die Brainrots zu sehen 👀";
+      }
+    });
+
+    // Brainrots laden
+    async function ladeBrainrots() {
+      brainrotContainer.innerHTML = "Lade...";
+      const querySnapshot = await getDocs(collection(db, "brainrots"));
+      if (querySnapshot.empty) {
+        brainrotContainer.innerHTML = "Noch keine Brainrots im Shop 😢";
+        return;
+      }
+
+      brainrotContainer.innerHTML = "";
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "brainrot-card";
+        div.innerHTML = `
+          <img src="${data.imageUrl || 'https://placehold.co/200x200'}" alt="Brainrot">
+          <h3>${data.name}</h3>
+          <p>Rarity: ${data.rarity || 'Unbekannt'}</p>
+          <input type="text" class="offer-input" placeholder="Dein Angebot..." id="offer-${doc.id}">
+          <button onclick="makeOffer('${doc.id}')">💬 Make Offer</button>
+        `;
+        brainrotContainer.appendChild(div);
+      });
+    }
+
+    // Offer-Funktion
+    window.makeOffer = async function(brainrotId) {
+      const user = auth.currentUser;
+      if (!user) return alert("Bitte einloggen!");
+      const input = document.getElementById(`offer-${brainrotId}`);
+      const angebot = input.value.trim();
+      if (!angebot) return alert("Bitte gib dein Angebot ein!");
+
+      await addDoc(collection(db, "offers"), {
+        brainrotId,
+        fromUid: user.uid,
+        fromName: user.displayName,
+        offerText: angebot,
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
+      input.value = "";
+      alert("✅ Angebot gesendet!");
+    };
+  </script>
+</body>
+</html>
