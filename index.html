@@ -49,9 +49,7 @@
     display: block;
     margin: 0 auto;
   }
-  h1 {
-    margin-top: 20px;
-  }
+  h1 { margin-top: 20px; }
   /* 🧠 Detail-Popup */
   #popup {
     position: fixed;
@@ -89,6 +87,7 @@
 <div id="auth-box">
   <input type="email" id="email" placeholder="E-Mail">
   <input type="password" id="password" placeholder="Passwort">
+  <button id="register-btn">Registrieren</button>
   <button id="login-btn">Login</button>
   <button id="logout-btn" style="display:none;">Logout</button>
 </div>
@@ -121,7 +120,7 @@ import {
   getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp, deleteDoc, doc 
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { 
-  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged 
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -141,6 +140,7 @@ const auth = getAuth(app);
 const brainrotList = document.getElementById("brainrot-list");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
+const registerBtn = document.getElementById("register-btn");
 const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const userInfo = document.getElementById("user-info");
@@ -148,21 +148,31 @@ const offersDiv = document.getElementById("offers");
 
 let brainrotCache = {};
 
-// 🔐 Login / Logout
+// 🔐 Registrierung
+registerBtn.addEventListener("click", async () => {
+  try {
+    await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+    alert("✅ Registrierung erfolgreich! Du bist jetzt eingeloggt.");
+  } catch(err) { alert("❌ " + err.message); }
+});
+
+// 🔐 Login
 loginBtn.addEventListener("click", async () => {
   try {
     await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
     alert("✅ Login erfolgreich!");
-  } catch (err) {
-    alert("❌ " + err.message);
-  }
+  } catch(err) { alert("❌ " + err.message); }
 });
+
+// 🔐 Logout
 logoutBtn.addEventListener("click", async () => { await signOut(auth); });
 
+// 🔄 Auth-Status
 onAuthStateChanged(auth, (user) => {
-  if (user) {
+  if(user){
     userInfo.textContent = `👤 Eingeloggt als: ${user.email}`;
     loginBtn.style.display = "none";
+    registerBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
     emailInput.style.display = "none";
     passwordInput.style.display = "none";
@@ -171,6 +181,7 @@ onAuthStateChanged(auth, (user) => {
   } else {
     userInfo.textContent = "Nicht eingeloggt";
     loginBtn.style.display = "inline-block";
+    registerBtn.style.display = "inline-block";
     logoutBtn.style.display = "none";
     emailInput.style.display = "inline-block";
     passwordInput.style.display = "inline-block";
@@ -199,7 +210,7 @@ async function ladeBrainrots() {
   });
 }
 
-// 🪄 Popup öffnen
+// 🪄 Popup
 window.openPopup = function(id,name,img,rarity,stock){
   document.getElementById("popup-name").textContent = name;
   document.getElementById("popup-img").src = img;
@@ -213,16 +224,16 @@ window.closePopup = function(){ document.getElementById("popup").style.display =
 // 📤 Angebot senden
 async function sendOffer(id) {
   const user = auth.currentUser;
-  if (!user) { alert("Bitte zuerst anmelden!"); return; }
+  if(!user){ alert("Bitte zuerst anmelden!"); return; }
   const robloxUsername = document.getElementById("popup-username").value.trim();
   const offerText = document.getElementById("popup-offertext").value.trim();
-  if (!robloxUsername || !offerText) { alert("Bitte alles ausfüllen!"); return; }
+  if(!robloxUsername || !offerText){ alert("Bitte alles ausfüllen!"); return; }
 
   const brainrotName = brainrotCache[id] || "Unbekannt";
 
   await addDoc(collection(db, "offers"), {
     brainrotId: id,
-    brainrotName: brainrotName,
+    brainrotName,
     robloxUsername,
     offerText,
     fromEmail: user.email,
@@ -235,7 +246,7 @@ async function sendOffer(id) {
   ladeEigeneAngebote();
 }
 
-// 📜 Eigene Angebote laden
+// 📜 Eigene Angebote
 async function ladeEigeneAngebote(){
   const user = auth.currentUser;
   if(!user) return;
@@ -254,18 +265,18 @@ async function ladeEigeneAngebote(){
 
     html += `
       <div style="border-bottom:1px solid #444; padding:5px;">
-        ${statusIcon} <strong>${o.brainrotName || "Unbekannter Brainrot"}</strong><br>
+        ${statusIcon} <strong>${o.brainrotName || "Unbekannt"}</strong><br>
         <em>${o.offerText}</em><br>
         Roblox: ${o.robloxUsername}<br>
         Status: ${o.status || "pending"}
-        ${o.status === "done" ? `<br><button onclick="deleteOffer('${docSnap.id}')">🗑️ Löschen</button>` : ""}
+        ${o.status==="done" ? `<br><button onclick="deleteOffer('${docSnap.id}')">🗑️ Löschen</button>` : ""}
       </div>
     `;
   });
   offersDiv.innerHTML = html;
 }
 
-// 🗑️ Angebot löschen, wenn fertig
+// 🗑️ Löschen
 window.deleteOffer = async function(id){
   if(confirm("Willst du dieses Angebot wirklich löschen?")){
     await deleteDoc(doc(db,"offers",id));
