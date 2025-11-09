@@ -39,9 +39,6 @@
 
   <h2>Akzeptierte Angebote</h2>
   <div id="offers-accepted">Lade...</div>
-
-  <h2>Erledigte Angebote</h2>
-  <div id="offers-done">Lade...</div>
 </div>
 
 <script type="module">
@@ -81,7 +78,6 @@ const addBtn=document.getElementById("add-btn");
 const brainrotList=document.getElementById("brainrot-list");
 const offersPending=document.getElementById("offers-pending");
 const offersAccepted=document.getElementById("offers-accepted");
-const offersDone=document.getElementById("offers-done");
 
 let brainrotMap = {}; // Mapping ID → Name
 
@@ -189,16 +185,19 @@ addBtn.addEventListener("click", async()=>{
   ladeBrainrots();
 });
 
-// Offers laden nach Status
+// Offers laden (ohne „done“)
 async function ladeOffers(){
   offersPending.innerHTML="Lade...";
   offersAccepted.innerHTML="Lade...";
-  offersDone.innerHTML="Lade...";
   const snapshot = await getDocs(collection(db,"offers"));
-  offersPending.innerHTML=""; offersAccepted.innerHTML=""; offersDone.innerHTML="";
+  offersPending.innerHTML=""; offersAccepted.innerHTML="";
 
   snapshot.forEach(docSnap=>{
     const data = docSnap.data();
+
+    // Erledigte (done) werden komplett ignoriert
+    if(data.status === "done" || data.status === "rejected") return;
+
     const div=document.createElement("div");
     div.className="offer";
     div.innerHTML=`
@@ -209,7 +208,6 @@ async function ladeOffers(){
       <strong>Status:</strong> ${data.status}<br>
     `;
 
-    // Buttons je nach Status
     if(data.status==="pending"){
       div.innerHTML += `
         <button onclick="acceptOffer('${docSnap.id}')">✔️ Annehmen</button>
@@ -222,9 +220,6 @@ async function ladeOffers(){
         <button onclick="markDone('${docSnap.id}')">✅ Fertig</button>
       `;
       offersAccepted.appendChild(div);
-    } 
-    else if(data.status==="done"){
-      offersDone.appendChild(div);
     }
   });
 }
