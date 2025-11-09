@@ -53,19 +53,33 @@
       border-radius: 4px;
       border: 1px solid #666;
     }
+    #auth-box {
+      margin-top: 10px;
+    }
+    input {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #999;
+      margin: 4px;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>🧠 Brainrot Trade Portal</h1>
     <div id="user-info"></div>
-    <button id="login-btn">Login</button>
-    <button id="logout-btn" style="display:none;">Logout</button>
+    <div id="auth-box">
+      <input id="email" type="email" placeholder="E-Mail" />
+      <input id="password" type="password" placeholder="Passwort" />
+      <button id="register-btn">Registrieren</button>
+      <button id="login-btn">Login</button>
+      <button id="logout-btn" style="display:none;">Logout</button>
+    </div>
   </header>
 
   <main>
     <h2>Shop 🛒</h2>
-    <div id="brainrots">Lade Brainrots...</div>
+    <div id="brainrots">Bitte einloggen...</div>
   </main>
 
   <!-- Firebase SDK -->
@@ -75,7 +89,7 @@
       getFirestore, collection, getDocs, addDoc, serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import { 
-      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged 
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     // Deine Firebase-Daten 🔥
@@ -93,16 +107,37 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
 
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const registerBtn = document.getElementById("register-btn");
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const userInfo = document.getElementById("user-info");
     const brainrotContainer = document.getElementById("brainrots");
 
+    // Registrierung
+    registerBtn.addEventListener("click", async () => {
+      try {
+        const userCred = await createUserWithEmailAndPassword(
+          auth,
+          emailInput.value,
+          passwordInput.value
+        );
+        alert("Registrierung erfolgreich!");
+      } catch (err) {
+        alert("Fehler: " + err.message);
+      }
+    });
+
     // Login
     loginBtn.addEventListener("click", async () => {
-      await signInWithPopup(auth, provider);
+      try {
+        await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+        alert("Eingeloggt!");
+      } catch (err) {
+        alert("Fehler: " + err.message);
+      }
     });
 
     // Logout
@@ -113,15 +148,17 @@
     // Benutzerstatus beobachten
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        userInfo.textContent = `👤 Eingeloggt als: ${user.displayName}`;
-        loginBtn.style.display = "none";
+        userInfo.textContent = `👤 Eingeloggt als: ${user.email}`;
         logoutBtn.style.display = "inline-block";
+        loginBtn.style.display = "none";
+        registerBtn.style.display = "none";
         ladeBrainrots();
       } else {
         userInfo.textContent = "Nicht eingeloggt";
-        loginBtn.style.display = "inline-block";
         logoutBtn.style.display = "none";
-        brainrotContainer.innerHTML = "Bitte einloggen, um die Brainrots zu sehen 👀";
+        loginBtn.style.display = "inline-block";
+        registerBtn.style.display = "inline-block";
+        brainrotContainer.innerHTML = "Bitte einloggen, um Brainrots zu sehen 👀";
       }
     });
 
@@ -161,7 +198,7 @@
       await addDoc(collection(db, "offers"), {
         brainrotId,
         fromUid: user.uid,
-        fromName: user.displayName,
+        fromEmail: user.email,
         offerText: angebot,
         status: "pending",
         createdAt: serverTimestamp()
