@@ -50,7 +50,6 @@
     margin: 0 auto;
   }
   h1 { margin-top: 20px; }
-  /* 🧠 Detail-Popup */
   #popup {
     position: fixed;
     top: 0; left: 0;
@@ -93,9 +92,9 @@
 </div>
 
 <h2>🧠 Unsere Brainrots</h2>
+<button id="create-brainrot-btn" style="display:none;">➕ Eigenen Brainrot erstellen</button>
 <div id="brainrot-list" class="grid">Lade Brainrots...</div>
 
-<!-- 🧩 Detail-Popup -->
 <div id="popup">
   <div id="popup-content">
     <h3 id="popup-name"></h3>
@@ -117,7 +116,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { 
-  getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp, deleteDoc, doc 
+  getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp, deleteDoc, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { 
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged 
@@ -145,6 +144,7 @@ const loginBtn = document.getElementById("login-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const userInfo = document.getElementById("user-info");
 const offersDiv = document.getElementById("offers");
+const createBrainrotBtn = document.getElementById("create-brainrot-btn");
 
 let brainrotCache = {};
 
@@ -176,6 +176,8 @@ onAuthStateChanged(auth, (user) => {
     logoutBtn.style.display = "inline-block";
     emailInput.style.display = "none";
     passwordInput.style.display = "none";
+    createBrainrotBtn.style.display = "inline-block";
+    createBrainrotBtn.onclick = () => openBrainrotCreator();
     ladeBrainrots();
     ladeEigeneAngebote();
   } else {
@@ -185,6 +187,7 @@ onAuthStateChanged(auth, (user) => {
     logoutBtn.style.display = "none";
     emailInput.style.display = "inline-block";
     passwordInput.style.display = "inline-block";
+    createBrainrotBtn.style.display = "none";
     brainrotList.innerHTML = "";
     offersDiv.innerHTML = "Bitte anmelden...";
   }
@@ -200,11 +203,15 @@ async function ladeBrainrots() {
     brainrotCache[docSnap.id] = data.name;
     const div = document.createElement("div");
     div.className = "brainrot" + (data.stock === 0 ? " outofstock" : "");
+    const isOwner = data.createdBy === (auth.currentUser?.email);
+    const isAdminMade = data.createdBy === "admin";
     div.innerHTML = `
       <strong>${data.name}</strong><br>
       <em>Rarity:</em> ${data.rarity || "Unbekannt"}<br>
       <img src="${data.imageUrl || 'https://placehold.co/120x120'}" width="120"><br>
       <button onclick="openPopup('${docSnap.id}','${data.name}','${data.imageUrl}','${data.rarity}','${data.stock ?? 0}')">ℹ️ Details</button>
+      ${isOwner && !isAdminMade ? `<button onclick="openBrainrotCreator('${docSnap.id}', ${JSON.stringify(data)})">✏️ Bearbeiten</button>` : ""}
+      ${isOwner && !isAdminMade ? `<button onclick="deleteBrainrot('${docSnap.id}')">🗑️ Löschen</button>` : ""}
     `;
     brainrotList.appendChild(div);
   });
@@ -276,12 +283,48 @@ async function ladeEigeneAngebote(){
   offersDiv.innerHTML = html;
 }
 
-// 🗑️ Löschen
+// 🗑️ Angebot löschen
 window.deleteOffer = async function(id){
   if(confirm("Willst du dieses Angebot wirklich löschen?")){
     await deleteDoc(doc(db,"offers",id));
     alert("🗑️ Angebot gelöscht!");
     ladeEigeneAngebote();
+  }
+};
+
+// ➕ Eigenen Brainrot erstellen oder bearbeiten
+async function openBrainrotCreator(existingId = null, existingData = null) {
+  const name = prompt("Name des Brainrots:", existingData?.name || "");
+  if (!name) return;
+  const rarity = prompt("Seltenheit:", existingData?.rarity || "Common");
+  const imageUrl = prompt("Bild-URL:", existingData?.imageUrl || "https://placehold.co/120x120");
+  const stock = parseInt(prompt("Stock:", existingData?.stock || 1));
+
+  const user = auth.currentUser;
+  if (!user) return alert("Bitte einloggen!");
+
+  if (existingId) {
+    await updateDoc(doc(db, "brainrots", existingId), { name, rarity, imageUrl, stock });
+    alert("✅ Brainrot aktualisiert!");
+  } else {
+    await addDoc(collection(db, "brainrots"), {
+      name,
+      rarity,
+      imageUrl,
+      stock,
+      createdBy: user.email
+    });
+    alert("🧩 Neuer Brainrot erstellt!");
+  }
+  ladeBrainrots();
+}
+
+// 🧽 Eigenen Brainrot löschen
+window.deleteBrainrot = async function(id){
+  if(confirm("Willst du diesen Brainrot wirklich löschen?")){
+    await deleteDoc(doc(db, "brainrots", id));
+    alert("🧩 Brainrot gelöscht!");
+    ladeBrainrots();
   }
 };
 </script>
