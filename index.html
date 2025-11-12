@@ -3,78 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💸 Steal a Brainrot - User Center 💸</title>
+<title>💸 Brainrot User Center</title>
 <style>
-  body {
-    font-family: Arial;
-    background: #1b1b2a;
-    color: #f5f5f5;
-    text-align: center;
-  }
-  input, button, textarea {
-    padding: 8px;
-    margin: 5px;
-    border-radius: 5px;
-    border: none;
-  }
-  button {
-    cursor: pointer;
-    background: #4e5efc;
-    color: white;
-  }
-  button:hover { background: #6f7bff; }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 15px;
-    justify-items: center;
-    padding: 15px;
-    max-width: 900px;
-    margin: auto;
-  }
-  .brainrot {
-    background: #2c2c44;
-    padding: 10px;
-    border-radius: 10px;
-    width: 90%;
-    text-align: left;
-  }
-  img {
-    border-radius: 8px;
-    display: block;
-    margin: 0 auto;
-  }
-  h1 { margin-top: 20px; }
-  #popup {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: none;
-    justify-content: center;
-    align-items: center;
-  }
-  #popup-content {
-    background: #2c2c44;
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-  }
-  #offers {
-    margin-top: 30px;
-    background: #2c2c44;
-    padding: 15px;
-    border-radius: 10px;
-    max-width: 600px;
-    margin-inline: auto;
-  }
+body { font-family: Arial; background:#1b1b2a; color:#f5f5f5; text-align:center; }
+input, button, textarea { padding:8px; margin:5px; border-radius:5px; border:none; }
+button { cursor:pointer; background:#4e5efc; color:white; }
+button:hover { background:#6f7bff; }
+.grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px,1fr)); gap:15px; justify-items:center; padding:15px; max-width:900px; margin:auto; }
+.brainrot { background:#2c2c44; padding:10px; border-radius:10px; width:90%; text-align:left; }
+img { border-radius:8px; display:block; margin:0 auto; }
+h1 { margin-top:20px; }
+#popup { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:none; justify-content:center; align-items:center; }
+#popup-content { background:#2c2c44; padding:20px; border-radius:10px; width:90%; max-width:400px; text-align:center; }
+#offers { margin-top:30px; background:#2c2c44; padding:15px; border-radius:10px; max-width:600px; margin-inline:auto; text-align:left; }
 </style>
 </head>
 <body>
 
-<h1>💸 Steal a Brainrot - User Center 💸</h1>
+<h1>💸 Brainrot User Center 💸</h1>
 
 <div id="user-info"></div>
 
@@ -90,7 +36,6 @@
 <button id="create-brainrot-btn" style="display:none;">➕ Brainrot erstellen</button>
 <div id="brainrot-list" class="grid">Bitte einloggen...</div>
 
-<!-- Detail-Popup -->
 <div id="popup">
   <div id="popup-content">
     <h3 id="popup-name"></h3>
@@ -111,27 +56,24 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { 
-  getFirestore, collection, getDocs, addDoc, updateDoc, query, where, serverTimestamp, deleteDoc, doc 
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { 
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, query, where, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
+// 🔑 Firebase Config (ersetze durch dein eigenes Projekt)
 const firebaseConfig = {
-  apiKey: "AIzaSyCSGYr4opBpK_G-U7Vs7o5boniVVojClaU",
-  authDomain: "brainrottrade-bada5.firebaseapp.com",
-  projectId: "brainrottrade-bada5",
-  storageBucket: "brainrottrade-bada5.firebasestorage.app",
-  messagingSenderId: "141473188329",
-  appId: "1:141473188329:web:3548a50d851d8807bbe378",
-  measurementId: "G-TJR1CS3SSP"
+  apiKey: "DEINE_API_KEY",
+  authDomain: "DEIN_PROJEKT.firebaseapp.com",
+  projectId: "DEIN_PROJEKT",
+  storageBucket: "DEIN_PROJEKT.appspot.com",
+  messagingSenderId: "DEIN_SENDER_ID",
+  appId: "DEIN_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Elemente
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const registerBtn = document.getElementById("register-btn");
@@ -140,167 +82,105 @@ const logoutBtn = document.getElementById("logout-btn");
 const userInfo = document.getElementById("user-info");
 const brainrotList = document.getElementById("brainrot-list");
 const offersDiv = document.getElementById("offers");
-const createBrainrotBtn = document.getElementById("create-brainrot-btn");
+const createBtn = document.getElementById("create-brainrot-btn");
 
 let brainrotCache = {};
 
-// 🔐 Registrierung
-registerBtn.onclick = async () => {
-  try {
-    await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-    alert("✅ Registrierung erfolgreich!");
-  } catch(err){ alert(err.message); }
-};
-
-// 🔐 Login
-loginBtn.onclick = async () => {
-  try {
-    await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-    alert("✅ Login erfolgreich!");
-  } catch(err){ alert(err.message); }
-};
-
-// 🔐 Logout
+// Registrierung & Login
+registerBtn.onclick = async () => { try { await createUserWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("✅ Registrierung erfolgreich!"); } catch(e){alert(e.message);} };
+loginBtn.onclick = async () => { try { await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("✅ Login erfolgreich!"); } catch(e){alert(e.message);} };
 logoutBtn.onclick = async () => { await signOut(auth); };
 
-// 👤 Auth-Status
-onAuthStateChanged(auth, (user) => {
+// Auth-State
+onAuthStateChanged(auth,user=>{
   if(user){
-    userInfo.textContent = `👤 Eingeloggt als: ${user.email}`;
-    emailInput.style.display = passwordInput.style.display = "none";
-    loginBtn.style.display = registerBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-    createBrainrotBtn.style.display = "inline-block";
+    userInfo.textContent=`👤 Eingeloggt als: ${user.email}`;
+    emailInput.style.display=passwordInput.style.display=loginBtn.style.display=registerBtn.style.display="none";
+    logoutBtn.style.display="inline-block";
+    createBtn.style.display="inline-block";
     ladeBrainrots();
     ladeEigeneAngebote();
   } else {
-    userInfo.textContent = "Nicht eingeloggt";
-    emailInput.style.display = passwordInput.style.display = "inline-block";
-    loginBtn.style.display = registerBtn.style.display = "inline-block";
-    logoutBtn.style.display = createBrainrotBtn.style.display = "none";
-    brainrotList.innerHTML = "Bitte einloggen...";
-    offersDiv.innerHTML = "Bitte anmelden...";
+    userInfo.textContent="Nicht eingeloggt";
+    emailInput.style.display=passwordInput.style.display=loginBtn.style.display=registerBtn.style.display="inline-block";
+    logoutBtn.style.display=createBtn.style.display="none";
+    brainrotList.innerHTML="Bitte einloggen...";
+    offersDiv.innerHTML="Bitte anmelden...";
   }
 });
 
-// 🧩 Brainrot-Erstellung
-createBrainrotBtn.onclick = () => openBrainrotCreator();
+// Brainrot erstellen/bearbeiten
+createBtn.onclick = () => openBrainrotCreator();
 
-async function openBrainrotCreator(existingId = null, existingData = null) {
-  const name = prompt("Name des Brainrots:", existingData?.name || "");
-  if(!name) return;
-  const rarity = prompt("Seltenheit:", existingData?.rarity || "Common");
-  const imageUrl = prompt("Bild-URL:", existingData?.imageUrl || "https://placehold.co/120x120");
-  const stock = parseInt(prompt("Stock:", existingData?.stock || 1));
-
-  const user = auth.currentUser;
-  if(!user) return alert("Bitte einloggen!");
-
-  if(existingId){
-    await updateDoc(doc(db,"brainrots",existingId),{name,rarity,imageUrl,stock});
-    alert("✅ Brainrot aktualisiert!");
-  } else {
-    await addDoc(collection(db,"brainrots"),{
-      name,rarity,imageUrl,stock,
-      createdBy: user.email
-    });
-    alert("🧠 Brainrot erstellt!");
-  }
+async function openBrainrotCreator(existingId=null,existingData=null){
+  const name = prompt("Name:",existingData?.name||""); if(!name) return;
+  const rarity = prompt("Rarity:",existingData?.rarity||"Common");
+  const imageUrl = prompt("Bild URL:",existingData?.imageUrl||"https://placehold.co/120x120");
+  const stock = parseInt(prompt("Stock:",existingData?.stock||1));
+  const user = auth.currentUser; if(!user) return alert("Bitte einloggen!");
+  if(existingId){ await updateDoc(doc(db,"brainrots",existingId),{name,rarity,imageUrl,stock}); alert("✅ Brainrot aktualisiert!"); } 
+  else{ await addDoc(collection(db,"brainrots"),{name,rarity,imageUrl,stock,createdBy:user.email}); alert("✅ Brainrot erstellt!"); }
   ladeBrainrots();
 }
 
-// 🧠 Brainrots laden
+// Lade Brainrots
 async function ladeBrainrots(){
   const user = auth.currentUser;
   const snapshot = await getDocs(collection(db,"brainrots"));
-  brainrotList.innerHTML = "";
+  brainrotList.innerHTML="";
   snapshot.forEach(docSnap=>{
-    const data = docSnap.data();
-    brainrotCache[docSnap.id] = data.name;
-    const isOwner = data.createdBy === user.email;
-    const div = document.createElement("div");
-    div.className = "brainrot";
-    div.innerHTML = `
+    const data=docSnap.data();
+    brainrotCache[docSnap.id]=data.name;
+    const isOwner = data.createdBy===user.email;
+    const div=document.createElement("div");
+    div.className="brainrot";
+    div.innerHTML=`
       <strong>${data.name}</strong><br>
       <em>${data.rarity}</em><br>
       <img src="${data.imageUrl}" width="120"><br>
       <button onclick="openPopup('${docSnap.id}','${data.name}','${data.imageUrl}','${data.rarity}','${data.stock}')">ℹ️ Details</button>
-      ${isOwner ? `<button onclick="openBrainrotCreator('${docSnap.id}', ${JSON.stringify(data)})">✏️ Bearbeiten</button>` : ""}
-      ${isOwner ? `<button onclick="deleteBrainrot('${docSnap.id}')">🗑️ Löschen</button>` : ""}
+      ${isOwner?`<button onclick="openBrainrotCreator('${docSnap.id}',${JSON.stringify(data)})">✏️ Bearbeiten</button>`:""}
+      ${isOwner?`<button onclick="deleteBrainrot('${docSnap.id}')">🗑️ Löschen</button>`:""}
     `;
     brainrotList.appendChild(div);
   });
 }
 
-// 📤 Angebot senden
-async function sendOffer(id){
-  const user = auth.currentUser;
-  if(!user) return alert("Bitte zuerst anmelden!");
-  const robloxUsername = document.getElementById("popup-username").value.trim();
-  const offerText = document.getElementById("popup-offertext").value.trim();
-  if(!robloxUsername || !offerText) return alert("Bitte alles ausfüllen!");
-
-  const brainrotName = brainrotCache[id];
-  const brainrotSnap = await getDocs(query(collection(db,"brainrots"), where("__name__","==",id)));
-  let createdBy = "";
-  brainrotSnap.forEach(s => { createdBy = s.data().createdBy; });
-
-  await addDoc(collection(db,"offers"),{
-    brainrotId: id,
-    brainrotName,
-    robloxUsername,
-    offerText,
-    fromEmail: user.email,
-    toEmail: createdBy,
-    status: "pending",
-    createdAt: serverTimestamp()
-  });
-  alert(`✅ Dein Angebot für "${brainrotName}" wurde gesendet!`);
-  closePopup();
-  ladeEigeneAngebote();
-}
-
-// 📜 Eigene Angebote
-async function ladeEigeneAngebote(){
-  const user = auth.currentUser;
-  const q = query(collection(db,"offers"), where("toEmail","==",user.email));
-  const snapshot = await getDocs(q);
-  if(snapshot.empty){ offersDiv.innerHTML="Keine Angebote."; return; }
-  let html = "";
-  snapshot.forEach(d=>{
-    const o = d.data();
-    html += `
-      <div style="border-bottom:1px solid #444;padding:5px;">
-        <strong>${o.brainrotName}</strong><br>
-        Von: ${o.fromEmail}<br>
-        Roblox: ${o.robloxUsername}<br>
-        Angebot: ${o.offerText}<br>
-        Status: ${o.status}
-      </div>
-    `;
-  });
-  offersDiv.innerHTML = html;
-}
-
-// Popup
-window.openPopup = (id,n,i,r,s)=>{
+// Popup & Angebot
+window.openPopup=(id,name,img,rarity,stock)=>{
   document.getElementById("popup").style.display="flex";
-  document.getElementById("popup-name").textContent=n;
-  document.getElementById("popup-img").src=i;
-  document.getElementById("popup-rarity").textContent=r;
-  document.getElementById("popup-stock").textContent=s;
+  document.getElementById("popup-name").textContent=name;
+  document.getElementById("popup-img").src=img;
+  document.getElementById("popup-rarity").textContent=rarity;
+  document.getElementById("popup-stock").textContent=stock;
   document.getElementById("popup-send").onclick=()=>sendOffer(id);
 };
 window.closePopup=()=>document.getElementById("popup").style.display="none";
 
+async function sendOffer(id){
+  const user=auth.currentUser; if(!user) return alert("Bitte einloggen!");
+  const username=document.getElementById("popup-username").value.trim();
+  const text=document.getElementById("popup-offertext").value.trim();
+  if(!username||!text) return alert("Bitte alles ausfüllen!");
+  const brainrotName=brainrotCache[id];
+  const snap=await getDocs(query(collection(db,"brainrots"),where("__name__","==",id)));
+  let createdBy=""; snap.forEach(s=>{createdBy=s.data().createdBy;});
+  await addDoc(collection(db,"offers"),{brainrotId:id,brainrotName,robloxUsername:username,offerText:text,fromEmail:user.email,toEmail:createdBy,status:"pending",createdAt:serverTimestamp()});
+  alert(`✅ Angebot gesendet!`);
+  closePopup(); ladeEigeneAngebote();
+}
+
+// Eigene Angebote laden
+async function ladeEigeneAngebote(){
+  const user=auth.currentUser; if(!user) return;
+  const q=query(collection(db,"offers"),where("toEmail","==",user.email));
+  const snapshot=await getDocs(q); if(snapshot.empty){ offersDiv.innerHTML="Keine Angebote."; return; }
+  let html=""; snapshot.forEach(d=>{const o=d.data(); html+=`<div style="border-bottom:1px solid #444;padding:5px;"><strong>${o.brainrotName}</strong><br>Von: ${o.fromEmail}<br>Roblox: ${o.robloxUsername}<br>Angebot: ${o.offerText}<br>Status: ${o.status}</div>`;});
+  offersDiv.innerHTML=html;
+}
+
 // Löschen
-window.deleteBrainrot = async (id)=>{
-  if(confirm("Willst du diesen Brainrot wirklich löschen?")){
-    await deleteDoc(doc(db,"brainrots",id));
-    alert("🗑️ Brainrot gelöscht!");
-    ladeBrainrots();
-  }
-};
+window.deleteBrainrot=async id=>{if(confirm("Willst du diesen Brainrot löschen?")){await deleteDoc(doc(db,"brainrots",id));alert("🗑️ Gelöscht!"); ladeBrainrots();}};
 </script>
 
 </body>
